@@ -1,0 +1,35 @@
+import matplotlib.pyplot as plt
+import xarray as xr
+import cartopy.crs as ccrs
+from cartopy import feature as cf 
+
+data = xr.open_dataset('chirps_21_WA_new.nc')
+fig = plt.figure(figsize=(8,8))
+ax = fig.add_subplot(111, projection = ccrs.PlateCarree())
+data.precip.sel(time = '1981-01-01').plot(cmap = 'RdBu', add_colorbar = False)
+ax.add_feature(cf.BORDERS, lw = 3, color = 'r')
+data
+ds = data.precip.sel(time = slice('2010-01-01','2021-12-31'))
+ds_year = ds.groupby('time.year').sum()
+ds_year.sel(year = 2010).plot(cmap = 'jet')
+ds_y = ds_year.sel(year = slice(2010, 2013))
+ds_y.plot(x = 'longitude', y = 'latitude', col = 'year', col_wrap = 2, cmap = 'seismic_r')
+ds_y.sum('year').plot(cmap = 'jet')
+plt.title('Joey')
+plt.xlabel('longitude')
+plt.ylabel('latitude')
+ds_y_seas = ds.groupby('time.season').mean()
+ds_y_seas.plot(x = 'longitude', y = 'latitude', col = 'season', col_wrap =3, cmap = 'jet_r')
+ds_y_seas.sel(season = 'DJF').plot(cmap = 'twilight_r')
+ds_y_seas.sel(season =['MAM','JJA']).plot(x = 'longitude', y = 'latitude', col = 'season', col_wrap = 2, cmap = 'seismic_r')
+ds_y_seas.sel(season=slice('MAM','JJA')).plot(x = 'longitude', y = 'latitude', col = 'season', col_wrap = 1, cmap = 'seismic_r')
+ds_mon = ds.groupby('time.month').mean()
+ds_mon.plot(x = 'longitude', y = 'latitude', col = 'month', col_wrap = 4, cmap = 'seismic_r')
+ds_mon.sel(month = slice(3,9)).plot(x = 'longitude', y = 'latitude', col = 'month', col_wrap = 3, cmap = 'seismic_r')
+ds_mon.sel(month=[1,4,7,10]).plot(x = 'longitude', y = 'latitude', col = 'month', col_wrap = 2, cmap = 'seismic_r')
+ds_mon[2:8].plot(x = 'longitude', y = 'latitude', col = 'month', col_wrap = 2, cmap = 'seismic_r')
+ds_mon.sel(longitude = 0.35,latitude = 6.5, method = 'nearest').plot(marker = 'x', color = 'r', linestyle = '--', lw = 3)
+ds_mon.mean(dim = ['longitude', 'latitude']).plot(marker = 'x', color = 'green', linestyle = '--', lw = 3)
+ds_year.sel(longitude = 0.5, latitude = 6.5, method = 'nearest').plot()
+dd = ds.sel(longitude = 0.5, latitude = 6.5, method = 'nearest')
+dd.resample(time='Y').mean().plot(marker = 'x', color = 'green', linestyle = '--')
